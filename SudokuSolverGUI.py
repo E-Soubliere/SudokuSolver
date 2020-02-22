@@ -28,7 +28,9 @@ solved = False
 
 """ Takes a sudoku board and initializes the solving functionality"""
 def solve(board):
+    pygame.display.set_caption('Sudoku Solver (Solving Board)')
     solveCell(board, 0, 0)
+    pygame.display.set_caption('Sudoku Solver')
 
 def solveCell(board, row, col):
     #Increment row at the end and return true when all rows are complete
@@ -127,6 +129,7 @@ def resetBoard():
             
 """ resets the board and obtains a new board request via api """
 def getNewBoard():
+    pygame.display.set_caption('Sudoku Solver (Reseting Board)')
     #resets the board
     resetBoard()
     #gets new board request
@@ -139,6 +142,8 @@ def getNewBoard():
         y = s['y']
         num = s['value']
         board[x][y] = num
+
+    pygame.display.set_caption('Sudoku Solver')
 
 #initialize the board on the screen
 drawBoard(board)
