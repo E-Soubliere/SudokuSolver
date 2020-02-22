@@ -1,5 +1,6 @@
-import math, pygame, sys, time
+import math, pygame, sys, time, requests
 pygame.init()
+pygame.display.set_caption('Sudoku Solver')
 
 #screen setup
 size = 600
@@ -42,14 +43,18 @@ def solveCell(board, row, col):
         #call solveCell on the next column
         return solveCell(board, row, col + 1)
 
-
     #loop through possible numbers and check if they work
     for num in range(1, 10):
         #check if the possible number works in the cell
         if (valid(board, row, col, num)):
             #place new number in the cell and redraw the board
             board[row][col] = num
+
+            #
+            #redraw the board after every step it makes (runs slower but looks cooler)
+            #
             drawBoard(board)
+
             #solve for the next cell, and if that cell ever fails, return to this one and empty it
             if solveCell(board, row, col + 1):
                 return True
@@ -110,16 +115,46 @@ def drawBoard(board):
             screen.blit(boxText, [xOffset + 22, yOffset + 20])
     pygame.display.flip()
 
+""" resets the values of the board to 0 """
+def resetBoard():
+    #loop through each row and column
+    for row in range(len(board)):
+        for col in range(len(board)):
+            #reset value to 0
+            board[row][col] = 0
+    #redraww the board when complete
+    drawBoard(board)
+            
+""" resets the board and obtains a new board request via api """
+def getNewBoard():
+    #resets the board
+    resetBoard()
+    #gets new board request
+    response = requests.get("http://www.cs.utep.edu/cheon/ws/sudoku/new/?size=9&level=2")
+    #parse the squares object from the request in a list
+    squares = response.json()['squares']
+    #iterate over each square object from list and push the value into the board
+    for s in squares:
+        x = s['x']
+        y = s['y']
+        num = s['value']
+        board[x][y] = num
+
 #initialize the board on the screen
 drawBoard(board)
 while 1:
     for event in pygame.event.get():
         if event.type == pygame.QUIT: sys.exit()
-
         #on right click, start solve process
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            if solved == False:
+            #if the puzzle is solved, generate a new board
+            if solved == True:
+                getNewBoard()
+                drawBoard(board)
+                solved = False
+            #if the puzzle is not solved, begin solve process
+            elif solved == False:
                 solve(board)
+                drawBoard(board)
                 solved = True
-
     pygame.display.flip()
